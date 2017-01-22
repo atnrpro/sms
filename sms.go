@@ -22,6 +22,8 @@ const (
 	StatusUndeliveredUnavailable = "4"
 	StatusUndeliveredSpam        = "15"
 	StatusUndeliveredInvPhone    = "16"
+
+	// TODO: Other delivery statuses.
 )
 
 type sender struct {
@@ -45,12 +47,13 @@ func New(login, password string, opts ...Option) *sender {
 // Option is an optional argument for the sender constructor.
 type Option func(*sender)
 
-// DevMode is an option specifying development operation mode.
+// DevMode is an Option specifying development operation mode.
 func DevMode(s *sender) {
 	s.devMode = true
 }
 
 type DeliveryStatus string
+
 func (d DeliveryStatus) IsQueued() bool       { return string(d) == StatusQueued }
 func (d DeliveryStatus) IsSent() bool         { return string(d) == StatusSent }
 func (d DeliveryStatus) IsDelivered() bool    { return string(d) == StatusDelivered }
@@ -60,6 +63,9 @@ func (d DeliveryStatus) IsInvalidPhone() bool { return string(d) == StatusUndeli
 func (d DeliveryStatus) IsUndelivered() bool {
 	sd := string(d)
 	return sd == StatusUndeliveredUnavailable || sd == StatusUndeliveredSpam || sd == StatusUndeliveredInvPhone
+}
+func (d DeliveryStatus) IsValid() bool {
+	return d.IsQueued() || d.IsSent() || d.IsDelivered() || d.IsUndelivered()
 }
 
 // SendResult represents a result of sending an SMS.
@@ -108,15 +114,6 @@ func (s *sender) sendSMS(to, text, from, sendTime string) (SendResult, error) {
 	return s.parseSendSMSResponse(respReader)
 }
 
-func (s *sender) QueryStatus(SMSID string) DeliveryStatus {
-	//args := map[string]string{
-	//	"smsId": SMSID,
-	//}
-	//respReader, err := s.request(URI+"/status", args)
-	// TODO: Implement.
-	return StatusQueued
-}
-
 func (s *sender) parseSendSMSResponse(resp io.Reader) (SendResult, error) {
 	result := SendResult{}
 	scanner := bufio.NewScanner(resp)
@@ -152,6 +149,31 @@ func (s *sender) parseSendSMSResponse(resp io.Reader) (SendResult, error) {
 		return SendResult{}, errors.New("bad response" + err.Error())
 	}
 	return result, nil
+}
+
+func (s *sender) QueryStatus(SMSID string) (DeliveryStatus, error) {
+	args := map[string]string{
+		"smsId": SMSID,
+	}
+	respReader, err := s.request(URI+"/status", args)
+	if err != nil {
+		return "", errors.New("failed to request status: " + err.Error())
+	}
+	return s.parseStatusResponse(respReader)
+}
+
+func (s *sender) parseStatusResponse(resp io.Reader) (DeliveryStatus, error) {
+	scanner := bufio.NewScanner(resp)
+	// TODO: What if a scanner hits EOF?
+	scanner.Scan() // FIXME: This line will be removed when sms-rassilka.com fixes an empty first line.
+	scanner.Scan()
+	code := scanner.Text()
+	scanner.Scan()
+	t := scanner.Text()
+	if code != "1" {
+		return "", fmt.Errorf("error response: %s %s", code, t)
+	}
+	return DeliveryStatus(t), nil
 }
 
 func (s *sender) request(uri string, args map[string]string) (io.Reader, error) {
