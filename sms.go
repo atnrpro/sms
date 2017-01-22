@@ -89,27 +89,29 @@ func (s *sender) sendSMS(to, text, from, sendTime string) (SendResult, error) {
 func (s *sender) parseSendSMSResponse(resp io.Reader) (SendResult, error) {
 	result := SendResult{}
 	scanner := bufio.NewScanner(resp)
+	// TODO: What if a scanner hits EOF?
+	scanner.Scan() // FIXME: This line will be removed when sms-rassilka.com fixes an empty first line.
+	scanner.Scan()
+	code, err := strconv.Atoi(scanner.Text())
+	if err != nil {
+		return SendResult{}, errors.New("bad response code: " + err.Error())
+	}
+	if code < 0 {
+		scanner.Scan()
+		return SendResult{}, fmt.Errorf("error response: %d %s", code, scanner.Text())
+	}
+
 	for line := 0; scanner.Scan(); line++ {
 		switch line {
-		case 0: // TODO: This line will be removed by the gateway.
-		case 1:
-			code, err := strconv.Atoi(scanner.Text())
-			if err != nil {
-				return SendResult{}, errors.New("bad response code: " + err.Error())
-			}
-			if code < 0 {
-				return SendResult{}, fmt.Errorf("bad response code: %d", code)
-			}
-		// TODO: Read the human text in case of the error.
-		case 2:
+		case 0:
 			result.SMSID = scanner.Text()
-		case 3:
+		case 1:
 			c, err := strconv.Atoi(scanner.Text())
 			if err != nil {
 				return SendResult{}, errors.New("bad SMS count: " + err.Error())
 			}
 			result.SMSCnt = c
-		case 4:
+		case 2:
 			result.SentAt = scanner.Text()
 		default:
 			result.DebugInfo += scanner.Text() + "\n"
