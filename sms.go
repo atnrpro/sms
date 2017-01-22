@@ -46,30 +46,29 @@ type SendResult struct {
 	SMSCnt    int
 	SentAt    string
 	DebugInfo string
-	Err       error
 }
 
 // SendSMS sends an SMS right away with the default sender.
-func (s *sender) SendSMS(to, text string) SendResult {
+func (s *sender) SendSMS(to, text string) (SendResult, error) {
 	return s.sendSMS(to, text, defaultFrom, "")
 }
 
 // SendSMSFrom sends an SMS right away from the specified sender.
-func (s *sender) SendSMSFrom(to, text, from string) SendResult {
+func (s *sender) SendSMSFrom(to, text, from string) (SendResult, error) {
 	return s.sendSMS(to, text, from, "")
 }
 
 // SendSMSAt sends an SMS from the default sender at the specified time.
-func (s *sender) SendSMSAt(to, text, sendTime string) SendResult {
+func (s *sender) SendSMSAt(to, text, sendTime string) (SendResult, error) {
 	return s.sendSMS(to, text, defaultFrom, sendTime)
 }
 
 // SendSMSFromAt sends an SMS from the specified sender at the specified time.
-func (s *sender) SendSMSFromAt(to, text, from, sendTime string) SendResult {
+func (s *sender) SendSMSFromAt(to, text, from, sendTime string) (SendResult, error) {
 	return s.sendSMS(to, text, from, sendTime)
 }
 
-func (s *sender) sendSMS(to, text, from, sendTime string) SendResult {
+func (s *sender) sendSMS(to, text, from, sendTime string) (SendResult, error) {
 	args := map[string]string{
 		"to":   to,
 		"text": text,
@@ -81,38 +80,33 @@ func (s *sender) sendSMS(to, text, from, sendTime string) SendResult {
 		args["sendTime"] = sendTime
 	}
 	respReader, err := s.request(URI+"/send", args)
-	// Example response:
-	// 1
-	// 123
-	// 1
-	// 2016-10-16 15:00:00
-	result := SendResult{}
 	if err != nil {
-		result.Err = errors.New("failed to request the service: " + err.Error())
-		return result
+		return SendResult{}, errors.New("failed to request the service: " + err.Error())
 	}
-	scanner := bufio.NewScanner(respReader)
+	return s.parseSendSMSResponse(respReader)
+}
+
+func (s *sender) parseSendSMSResponse(resp io.Reader) (SendResult, error) {
+	result := SendResult{}
+	scanner := bufio.NewScanner(resp)
 	for line := 0; scanner.Scan(); line++ {
 		switch line {
 		case 0: // TODO: This line will be removed by the gateway.
 		case 1:
 			code, err := strconv.Atoi(scanner.Text())
 			if err != nil {
-				result.Err = errors.New("bad response code: " + err.Error())
-				return result
+				return SendResult{}, errors.New("bad response code: " + err.Error())
 			}
 			if code < 0 {
-				result.Err = fmt.Errorf("bad response code: %d", code)
-				return result
+				return SendResult{}, fmt.Errorf("bad response code: %d", code)
 			}
-			// TODO: Read the human text.
+		// TODO: Read the human text in case of the error.
 		case 2:
 			result.SMSID = scanner.Text()
 		case 3:
 			c, err := strconv.Atoi(scanner.Text())
 			if err != nil {
-				result.Err = errors.New("bad SMS count: " + err.Error())
-				return result
+				return SendResult{}, errors.New("bad SMS count: " + err.Error())
 			}
 			result.SMSCnt = c
 		case 4:
@@ -122,9 +116,9 @@ func (s *sender) sendSMS(to, text, from, sendTime string) SendResult {
 		}
 	}
 	if err := scanner.Err(); err != nil {
-		result.Err = errors.New("bad response" + err.Error())
+		return SendResult{}, errors.New("bad response" + err.Error())
 	}
-	return result
+	return result, nil
 }
 
 func (s *sender) request(uri string, args map[string]string) (io.Reader, error) {
