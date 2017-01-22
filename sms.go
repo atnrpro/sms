@@ -3,15 +3,25 @@ package sms
 import (
 	"bufio"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"strconv"
-	"fmt"
 )
 
 const (
-	URI = "https://sms-rassilka.com/api/simple"
+	URI         = "https://sms-rassilka.com/api/simple"
 	defaultFrom = "inform"
+
+	// Successful delivery statuses.
+	StatusQueued    = "0"
+	StatusSent      = "1"
+	StatusDelivered = "3"
+
+	// Unsuccessful delivery statuses.
+	StatusUndeliveredUnavailable = "4"
+	StatusUndeliveredSpam        = "15"
+	StatusUndeliveredInvPhone    = "16"
 )
 
 type sender struct {
@@ -38,6 +48,18 @@ type Option func(*sender)
 // DevMode is an option specifying development operation mode.
 func DevMode(s *sender) {
 	s.devMode = true
+}
+
+type DeliveryStatus string
+func (d DeliveryStatus) IsQueued() bool       { return string(d) == StatusQueued }
+func (d DeliveryStatus) IsSent() bool         { return string(d) == StatusSent }
+func (d DeliveryStatus) IsDelivered() bool    { return string(d) == StatusDelivered }
+func (d DeliveryStatus) IsUnavailable() bool  { return string(d) == StatusUndeliveredUnavailable }
+func (d DeliveryStatus) IsSpam() bool         { return string(d) == StatusUndeliveredSpam }
+func (d DeliveryStatus) IsInvalidPhone() bool { return string(d) == StatusUndeliveredInvPhone }
+func (d DeliveryStatus) IsUndelivered() bool {
+	sd := string(d)
+	return sd == StatusUndeliveredUnavailable || sd == StatusUndeliveredSpam || sd == StatusUndeliveredInvPhone
 }
 
 // SendResult represents a result of sending an SMS.
@@ -84,6 +106,15 @@ func (s *sender) sendSMS(to, text, from, sendTime string) (SendResult, error) {
 		return SendResult{}, errors.New("failed to request the service: " + err.Error())
 	}
 	return s.parseSendSMSResponse(respReader)
+}
+
+func (s *sender) QueryStatus(SMSID string) DeliveryStatus {
+	//args := map[string]string{
+	//	"smsId": SMSID,
+	//}
+	//respReader, err := s.request(URI+"/status", args)
+	// TODO: Implement.
+	return StatusQueued
 }
 
 func (s *sender) parseSendSMSResponse(resp io.Reader) (SendResult, error) {
