@@ -19,7 +19,8 @@ func (s *sender) QueryStatus(SMSID string) (DeliveryStatus, error) {
 	return s.parseStatusResponse(respReader)
 }
 
-func (s *sender) parseStatusResponse(resp io.Reader) (DeliveryStatus, error) {
+func (s *sender) parseStatusResponse(resp io.ReadCloser) (DeliveryStatus, error) {
+	defer resp.Close()
 	scanner := bufio.NewScanner(resp)
 	// TODO: What if a scanner hits EOF?
 	scanner.Scan() // FIXME: This line will be removed when sms-rassilka.com fixes an empty first line.

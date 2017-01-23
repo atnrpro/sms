@@ -54,7 +54,8 @@ func (s *sender) sendSMS(to, text, from, sendTime string) (SendResult, error) {
 	return s.parseSendSMSResponse(respReader)
 }
 
-func (s *sender) parseSendSMSResponse(resp io.Reader) (SendResult, error) {
+func (s *sender) parseSendSMSResponse(resp io.ReadCloser) (SendResult, error) {
+	defer resp.Close()
 	result := SendResult{}
 	scanner := bufio.NewScanner(resp)
 	// TODO: What if a scanner hits EOF?
@@ -88,7 +89,7 @@ func (s *sender) parseSendSMSResponse(resp io.Reader) (SendResult, error) {
 	return result, nil
 }
 
-func (s *sender) request(uri string, args map[string]string) (io.Reader, error) {
+func (s *sender) request(uri string, args map[string]string) (io.ReadCloser, error) {
 	// The error is caught during tests.
 	req, _ := http.NewRequest(http.MethodGet, uri, nil)
 	q := req.URL.Query()
