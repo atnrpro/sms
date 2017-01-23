@@ -54,18 +54,15 @@ func DevMode(s *sender) {
 
 type DeliveryStatus string
 
-func (d DeliveryStatus) IsQueued() bool       { return string(d) == StatusQueued }
-func (d DeliveryStatus) IsSent() bool         { return string(d) == StatusSent }
-func (d DeliveryStatus) IsDelivered() bool    { return string(d) == StatusDelivered }
-func (d DeliveryStatus) IsUnavailable() bool  { return string(d) == StatusUndeliveredUnavailable }
-func (d DeliveryStatus) IsSpam() bool         { return string(d) == StatusUndeliveredSpam }
-func (d DeliveryStatus) IsInvalidPhone() bool { return string(d) == StatusUndeliveredInvPhone }
+func (d DeliveryStatus) IsInProcess() bool {
+	return string(d) == StatusQueued || string(d) == StatusSent
+}
+func (d DeliveryStatus) IsDelivered() bool {
+	return string(d) == StatusDelivered
+}
 func (d DeliveryStatus) IsUndelivered() bool {
 	sd := string(d)
 	return sd == StatusUndeliveredUnavailable || sd == StatusUndeliveredSpam || sd == StatusUndeliveredInvPhone
-}
-func (d DeliveryStatus) IsValid() bool {
-	return d.IsQueued() || d.IsSent() || d.IsDelivered() || d.IsUndelivered()
 }
 
 // SendResult represents a result of sending an SMS.
