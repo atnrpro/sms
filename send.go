@@ -3,7 +3,6 @@ package sms
 import (
 	"bufio"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"strconv"
@@ -61,13 +60,10 @@ func (s *sender) parseSendSMSResponse(resp io.Reader) (SendResult, error) {
 	// TODO: What if a scanner hits EOF?
 	scanner.Scan() // FIXME: This line will be removed when sms-rassilka.com fixes an empty first line.
 	scanner.Scan()
-	code, err := strconv.Atoi(scanner.Text())
-	if err != nil {
-		return SendResult{}, errors.New("bad response code: " + err.Error())
-	}
-	if code < 0 {
+	code := scanner.Text()
+	if code != "1" {
 		scanner.Scan()
-		return SendResult{}, fmt.Errorf("error response: %d %s", code, scanner.Text())
+		return SendResult{}, errors.New("got error response: " + code + " " + scanner.Text())
 	}
 
 	for line := 0; scanner.Scan(); line++ {
