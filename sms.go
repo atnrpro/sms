@@ -4,7 +4,6 @@ import (
 	"io"
 	"net/http"
 	"bufio"
-	"errors"
 	"strconv"
 	"fmt"
 )
@@ -68,7 +67,7 @@ func (s *Sender) QueryStatus(SMSID string) (DeliveryStatus, error) {
 	}
 	respReader, err := s.request(uri+"/status", args)
 	if err != nil {
-		return "", errors.New("failed to request status: " + err.Error())
+		return "", fmt.Errorf("failed to request status: %v", err.Error())
 	}
 	return s.parseStatusResponse(respReader)
 }
@@ -101,7 +100,7 @@ func (s *Sender) sendSMS(to, text, from, sendTime string) (SendResult, error) {
 	}
 	respReader, err := s.request(uri+"/send", args)
 	if err != nil {
-		return SendResult{}, errors.New("failed to request the service: " + err.Error())
+		return SendResult{}, fmt.Errorf("failed to request the service: %v", err)
 	}
 	return s.parseSendSMSResponse(respReader)
 }
@@ -116,7 +115,7 @@ func (s *Sender) parseSendSMSResponse(resp io.ReadCloser) (SendResult, error) {
 	code := scanner.Text()
 	if code != "1" {
 		scanner.Scan()
-		return SendResult{}, errors.New("got error response: " + code + " " + scanner.Text())
+		return SendResult{}, fmt.Errorf("got error response: %s %s", code, scanner.Text())
 	}
 
 	for line := 0; scanner.Scan(); line++ {
@@ -126,7 +125,7 @@ func (s *Sender) parseSendSMSResponse(resp io.ReadCloser) (SendResult, error) {
 		case 1:
 			c, err := strconv.Atoi(scanner.Text())
 			if err != nil {
-				return SendResult{}, errors.New("bad SMS count: " + err.Error())
+				return SendResult{}, fmt.Errorf("bad SMS count: %v", err)
 			}
 			result.SMSCnt = c
 		case 2:
@@ -136,7 +135,7 @@ func (s *Sender) parseSendSMSResponse(resp io.ReadCloser) (SendResult, error) {
 		}
 	}
 	if err := scanner.Err(); err != nil {
-		return SendResult{}, errors.New("bad response" + err.Error())
+		return SendResult{}, fmt.Errorf("bad response: %v", err.Error())
 	}
 	return result, nil
 }
