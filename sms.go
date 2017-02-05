@@ -27,8 +27,8 @@ type Sender struct {
 // DeliveryStatus represents a delivery status. If you need an exact status, compare with constants above.
 type DeliveryStatus string
 
-// IsInProcess tells if a message is still being processed.
-func (d DeliveryStatus) IsInProcess() bool {
+// IsInProgress tells if a message is still being processed.
+func (d DeliveryStatus) IsInProgress() bool {
 	return d == StatusQueued || d == StatusSent
 }
 
