@@ -1,11 +1,11 @@
 package sms
 
 import (
+	"bufio"
+	"fmt"
 	"io"
 	"net/http"
-	"bufio"
 	"strconv"
-	"fmt"
 )
 
 const (
@@ -76,7 +76,6 @@ func (s *Sender) parseStatusResponse(resp io.ReadCloser) (DeliveryStatus, error)
 	defer resp.Close()
 	scanner := bufio.NewScanner(resp)
 	// TODO: What if a scanner hits EOF?
-	scanner.Scan() // FIXME: This line will be removed when sms-rassilka.com fixes an empty first line.
 	scanner.Scan()
 	code := scanner.Text()
 	scanner.Scan()
@@ -110,7 +109,6 @@ func (s *Sender) parseSendSMSResponse(resp io.ReadCloser) (SendResult, error) {
 	result := SendResult{}
 	scanner := bufio.NewScanner(resp)
 	// TODO: What if a scanner hits EOF?
-	scanner.Scan() // FIXME: This line will be removed when sms-rassilka.com fixes an empty first line.
 	scanner.Scan()
 	code := scanner.Text()
 	if code != "1" {
