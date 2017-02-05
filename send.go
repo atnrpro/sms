@@ -47,7 +47,7 @@ func (s *Sender) sendSMS(to, text, from, sendTime string) (SendResult, error) {
 	if sendTime != "" {
 		args["sendTime"] = sendTime
 	}
-	respReader, err := s.request(URI+"/send", args)
+	respReader, err := s.request(uri+"/send", args)
 	if err != nil {
 		return SendResult{}, errors.New("failed to request the service: " + err.Error())
 	}

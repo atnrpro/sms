@@ -1,7 +1,7 @@
 package sms
 
 const (
-	URI         = "https://sms-rassilka.com/api/simple"
+	uri         = "https://sms-rassilka.com/api/simple"
 	defaultFrom = "inform"
 
 	// Successful delivery statuses.

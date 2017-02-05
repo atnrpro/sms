@@ -12,7 +12,7 @@ func (s *Sender) QueryStatus(SMSID string) (DeliveryStatus, error) {
 	args := map[string]string{
 		"smsId": SMSID,
 	}
-	respReader, err := s.request(URI+"/status", args)
+	respReader, err := s.request(uri+"/status", args)
 	if err != nil {
 		return "", errors.New("failed to request status: " + err.Error())
 	}
