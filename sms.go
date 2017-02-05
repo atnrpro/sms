@@ -39,5 +39,5 @@ func (d DeliveryStatus) IsDelivered() bool {
 
 // IsUndelivered tells if a message has been processed and undelivered by any reason.
 func (d DeliveryStatus) IsUndelivered() bool {
-	return d == StatusUndeliveredUnavailable || d == StatusUndeliveredSpam || d == StatusUndeliveredInvPhone
+	return !d.IsInProgress() && !d.IsDelivered()
 }
