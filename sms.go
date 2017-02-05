@@ -17,39 +17,11 @@ const (
 	// TODO: Other delivery statuses.
 )
 
-// Sender is the library Facade.
-type Sender interface {
-	SendSMS(to, text string) (SendResult, error)
-	SendSMSFrom(to, text, from string) (SendResult, error)
-	SendSMSAt(to, text, sendTime string) (SendResult, error)
-	SendSMSFromAt(to, text, from, sendTime string) (SendResult, error)
-	QueryStatus(SMSID string) (DeliveryStatus, error)
-}
-
-type sender struct {
-	login    string
-	password string
-	devMode  bool
-}
-
-// New is a constructor of Sender.
-func New(login, password string, opts ...Option) Sender {
-	s := sender{
-		login:    login,
-		password: password,
-	}
-	for i := range opts {
-		opts[i](&s)
-	}
-	return &s
-}
-
-// Option is an optional argument for the sender constructor.
-type Option func(*sender)
-
-// DevMode is an Option specifying development operation mode.
-func DevMode(s *sender) {
-	s.devMode = true
+// Sender is an object for sending SMS.
+type Sender struct {
+	Login    string
+	Password string
+	DevMode  bool
 }
 
 // DeliveryStatus represents a delivery status. If you need an exact status, compare with constants above.

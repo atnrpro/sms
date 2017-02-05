@@ -16,27 +16,27 @@ type SendResult struct {
 	DebugInfo string
 }
 
-// SendSMS sends an SMS right away with the default sender.
-func (s *sender) SendSMS(to, text string) (SendResult, error) {
+// SendSMS sends an SMS right away with the default Sender.
+func (s *Sender) SendSMS(to, text string) (SendResult, error) {
 	return s.sendSMS(to, text, defaultFrom, "")
 }
 
-// SendSMSFrom sends an SMS right away from the specified sender.
-func (s *sender) SendSMSFrom(to, text, from string) (SendResult, error) {
+// SendSMSFrom sends an SMS right away from the specified Sender.
+func (s *Sender) SendSMSFrom(to, text, from string) (SendResult, error) {
 	return s.sendSMS(to, text, from, "")
 }
 
-// SendSMSAt sends an SMS from the default sender at the specified time.
-func (s *sender) SendSMSAt(to, text, sendTime string) (SendResult, error) {
+// SendSMSAt sends an SMS from the default Sender at the specified time.
+func (s *Sender) SendSMSAt(to, text, sendTime string) (SendResult, error) {
 	return s.sendSMS(to, text, defaultFrom, sendTime)
 }
 
-// SendSMSFromAt sends an SMS from the specified sender at the specified time.
-func (s *sender) SendSMSFromAt(to, text, from, sendTime string) (SendResult, error) {
+// SendSMSFromAt sends an SMS from the specified Sender at the specified time.
+func (s *Sender) SendSMSFromAt(to, text, from, sendTime string) (SendResult, error) {
 	return s.sendSMS(to, text, from, sendTime)
 }
 
-func (s *sender) sendSMS(to, text, from, sendTime string) (SendResult, error) {
+func (s *Sender) sendSMS(to, text, from, sendTime string) (SendResult, error) {
 	args := map[string]string{
 		"to":   to,
 		"text": text,
@@ -54,7 +54,7 @@ func (s *sender) sendSMS(to, text, from, sendTime string) (SendResult, error) {
 	return s.parseSendSMSResponse(respReader)
 }
 
-func (s *sender) parseSendSMSResponse(resp io.ReadCloser) (SendResult, error) {
+func (s *Sender) parseSendSMSResponse(resp io.ReadCloser) (SendResult, error) {
 	defer resp.Close()
 	result := SendResult{}
 	scanner := bufio.NewScanner(resp)
@@ -89,13 +89,13 @@ func (s *sender) parseSendSMSResponse(resp io.ReadCloser) (SendResult, error) {
 	return result, nil
 }
 
-func (s *sender) request(uri string, args map[string]string) (io.ReadCloser, error) {
+func (s *Sender) request(uri string, args map[string]string) (io.ReadCloser, error) {
 	// The error is caught during tests.
 	req, _ := http.NewRequest(http.MethodGet, uri, nil)
 	q := req.URL.Query()
-	q.Set("login", s.login)
-	q.Set("password", s.password)
-	if s.devMode {
+	q.Set("login", s.Login)
+	q.Set("password", s.Password)
+	if s.DevMode {
 		q.Set("mode", "dev")
 	}
 	for k, v := range args {

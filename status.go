@@ -8,7 +8,7 @@ import (
 )
 
 // QueryStatus requests delivery status of an SMS.
-func (s *sender) QueryStatus(SMSID string) (DeliveryStatus, error) {
+func (s *Sender) QueryStatus(SMSID string) (DeliveryStatus, error) {
 	args := map[string]string{
 		"smsId": SMSID,
 	}
@@ -19,7 +19,7 @@ func (s *sender) QueryStatus(SMSID string) (DeliveryStatus, error) {
 	return s.parseStatusResponse(respReader)
 }
 
-func (s *sender) parseStatusResponse(resp io.ReadCloser) (DeliveryStatus, error) {
+func (s *Sender) parseStatusResponse(resp io.ReadCloser) (DeliveryStatus, error) {
 	defer resp.Close()
 	scanner := bufio.NewScanner(resp)
 	// TODO: What if a scanner hits EOF?
