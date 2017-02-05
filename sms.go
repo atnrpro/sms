@@ -25,11 +25,21 @@ const (
 	// TODO: Other delivery statuses.
 )
 
-// Sender is an object for sending SMS.
+// Sender is a library facade for sending SMS and retrieving delivery statuses.
 type Sender struct {
-	Login    string
-	Password string
-	DevMode  bool
+	// Login on https://sms-rassilka.com
+	Login string
+
+	// MD5-hash of your password.
+	PasswordMD5 string
+
+	// SandboxMode is used to test the connection without actually wasting your balance.
+	// If false, real SMS are sent and real delivery statuses are retrieved.
+	// If true, no SMS are really sent and delivery statuses are fake.
+	SandboxMode bool
+
+	// Client allows to make requests with your own HTTP client.
+	Client http.Client
 }
 
 // SendResult represents a result of sending an SMS.
@@ -143,8 +153,8 @@ func (s *Sender) request(uri string, args map[string]string) (io.ReadCloser, err
 	req, _ := http.NewRequest(http.MethodGet, uri, nil)
 	q := req.URL.Query()
 	q.Set("login", s.Login)
-	q.Set("password", s.Password)
-	if s.DevMode {
+	q.Set("password", s.PasswordMD5)
+	if s.SandboxMode {
 		q.Set("mode", "dev")
 	}
 	for k, v := range args {
