@@ -29,16 +29,15 @@ type DeliveryStatus string
 
 // IsInProcess tells if a message is still being processed.
 func (d DeliveryStatus) IsInProcess() bool {
-	return string(d) == StatusQueued || string(d) == StatusSent
+	return d == StatusQueued || d == StatusSent
 }
 
 // IsDelivered tells if a message has in fact been delivered.
 func (d DeliveryStatus) IsDelivered() bool {
-	return string(d) == StatusDelivered
+	return d == StatusDelivered
 }
 
 // IsUndelivered tells if a message has been processed and undelivered by any reason.
 func (d DeliveryStatus) IsUndelivered() bool {
-	sd := string(d)
-	return sd == StatusUndeliveredUnavailable || sd == StatusUndeliveredSpam || sd == StatusUndeliveredInvPhone
+	return d == StatusUndeliveredUnavailable || d == StatusUndeliveredSpam || d == StatusUndeliveredInvPhone
 }
