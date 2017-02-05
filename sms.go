@@ -161,7 +161,7 @@ func (s *Sender) request(uri string, args map[string]string) (io.ReadCloser, err
 		q.Set(k, v)
 	}
 	req.URL.RawQuery = q.Encode()
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := s.Client.Do(req)
 	if err != nil {
 		return nil, err
 	}
