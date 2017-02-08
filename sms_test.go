@@ -1,10 +1,11 @@
 package sms
 
 import (
-	"testing"
-	"github.com/stretchr/testify/require"
 	"bytes"
+	"github.com/stretchr/testify/require"
 	"net/http"
+	"testing"
+	"io/ioutil"
 )
 
 func TestNewSender(t *testing.T) {
@@ -30,7 +31,7 @@ func TestDeliveryStatus_IsInProgress(t *testing.T) {
 		StatusSent,
 	}
 	for _, s := range statuses {
-		t.Run("check status " + string(s), func(t *testing.T) {
+		t.Run("check status "+string(s), func(t *testing.T) {
 			require.True(t, s.IsInProgress())
 			require.False(t, s.IsDelivered())
 			require.False(t, s.IsUndelivered())
@@ -46,7 +47,7 @@ func TestDeliveryStatus_IsUndelivered(t *testing.T) {
 		"AbsolutelyUnknownStatus",
 	}
 	for _, s := range statuses {
-		t.Run("check status " + string(s), func(t *testing.T) {
+		t.Run("check status "+string(s), func(t *testing.T) {
 			require.True(t, s.IsUndelivered())
 			require.False(t, s.IsInProgress())
 			require.False(t, s.IsDelivered())
@@ -107,4 +108,35 @@ func TestParseSendSMSResponse_MalformedRequest(t *testing.T) {
 	s := Sender{}
 	_, err := s.parseSendSMSResponse(req)
 	require.NotNil(t, err)
+}
+
+type fakeClient struct{
+	req *http.Request
+}
+
+func (c *fakeClient) Do(req *http.Request) (*http.Response, error) {
+	c.req = req
+	return &http.Response{
+		Body: ioutil.NopCloser(bytes.NewBufferString("sample response")),
+	}, nil
+}
+
+func TestRequest(t *testing.T) {
+	c := &fakeClient{}
+	s := Sender{
+		Login:       "+79998887766",
+		PasswordMD5: "fd494182a7ee16ae07f641c7c03663d8",
+		SandboxMode: true,
+		Client:      c,
+	}
+
+	_, _ = s.request("/send", map[string]string{"user-arg": "user-val"})
+
+	require.Equal(t, "https", c.req.URL.Scheme)
+	require.Equal(t, "sms-rassilka.com", c.req.URL.Host)
+	require.Equal(t, "/api/simple/send", c.req.URL.Path)
+	require.Equal(t, "+79998887766", c.req.URL.Query().Get("login"))
+	require.Equal(t, "fd494182a7ee16ae07f641c7c03663d8", c.req.URL.Query().Get("password"))
+	require.Equal(t, "dev", c.req.URL.Query().Get("mode"))
+	require.Equal(t, "user-val", c.req.URL.Query().Get("user-arg"))
 }
