@@ -51,27 +51,27 @@ type SendResult struct {
 }
 
 // SendSMS sends an SMS right away with the default Sender.
-func (s *Sender) SendSMS(to, text string) (SendResult, error) {
+func (s Sender) SendSMS(to, text string) (SendResult, error) {
 	return s.sendSMS(to, text, defaultFrom, "")
 }
 
 // SendSMSFrom sends an SMS right away from the specified Sender.
-func (s *Sender) SendSMSFrom(to, text, from string) (SendResult, error) {
+func (s Sender) SendSMSFrom(to, text, from string) (SendResult, error) {
 	return s.sendSMS(to, text, from, "")
 }
 
 // SendSMSAt sends an SMS from the default Sender at the specified time.
-func (s *Sender) SendSMSAt(to, text, sendTime string) (SendResult, error) {
+func (s Sender) SendSMSAt(to, text, sendTime string) (SendResult, error) {
 	return s.sendSMS(to, text, defaultFrom, sendTime)
 }
 
 // SendSMSFromAt sends an SMS from the specified Sender at the specified time.
-func (s *Sender) SendSMSFromAt(to, text, from, sendTime string) (SendResult, error) {
+func (s Sender) SendSMSFromAt(to, text, from, sendTime string) (SendResult, error) {
 	return s.sendSMS(to, text, from, sendTime)
 }
 
 // QueryStatus requests delivery status of an SMS.
-func (s *Sender) QueryStatus(SMSID string) (DeliveryStatus, error) {
+func (s Sender) QueryStatus(SMSID string) (DeliveryStatus, error) {
 	args := map[string]string{
 		"smsId": SMSID,
 	}
@@ -83,7 +83,7 @@ func (s *Sender) QueryStatus(SMSID string) (DeliveryStatus, error) {
 	return s.parseStatusResponse(resp)
 }
 
-func (s *Sender) parseStatusResponse(resp io.Reader) (DeliveryStatus, error) {
+func (s Sender) parseStatusResponse(resp io.Reader) (DeliveryStatus, error) {
 	scanner := bufio.NewScanner(resp)
 	// TODO: What if a scanner hits EOF?
 	scanner.Scan()
@@ -96,7 +96,7 @@ func (s *Sender) parseStatusResponse(resp io.Reader) (DeliveryStatus, error) {
 	return DeliveryStatus(t), nil
 }
 
-func (s *Sender) sendSMS(to, text, from, sendTime string) (SendResult, error) {
+func (s Sender) sendSMS(to, text, from, sendTime string) (SendResult, error) {
 	args := map[string]string{
 		"to":   to,
 		"text": text,
@@ -115,7 +115,7 @@ func (s *Sender) sendSMS(to, text, from, sendTime string) (SendResult, error) {
 	return s.parseSendSMSResponse(resp)
 }
 
-func (s *Sender) parseSendSMSResponse(resp io.Reader) (SendResult, error) {
+func (s Sender) parseSendSMSResponse(resp io.Reader) (SendResult, error) {
 	result := SendResult{}
 	scanner := bufio.NewScanner(resp)
 	// TODO: What if a scanner hits EOF?
@@ -148,7 +148,7 @@ func (s *Sender) parseSendSMSResponse(resp io.Reader) (SendResult, error) {
 	return result, nil
 }
 
-func (s *Sender) request(uri string, args map[string]string) (io.ReadCloser, error) {
+func (s Sender) request(uri string, args map[string]string) (io.ReadCloser, error) {
 	// The error is caught during tests.
 	req, _ := http.NewRequest(http.MethodGet, uri, nil)
 	q := req.URL.Query()
