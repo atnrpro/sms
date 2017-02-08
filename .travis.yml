@@ -5,6 +5,7 @@ go:
   - tip
 
 install:
+  - go get github.com/stretchr/testify/require
   - go get golang.org/x/tools/cmd/cover
   - go get github.com/mattn/goveralls
 
