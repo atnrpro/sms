@@ -29,9 +29,9 @@ func TestDeliveryStatus_IsInProgress(t *testing.T) {
 
 func TestDeliveryStatus_IsUndelivered(t *testing.T) {
 	statuses := []DeliveryStatus{
-		StatusUndeliveredUnavailable,
-		StatusUndeliveredSpam,
-		StatusUndeliveredInvPhone,
+		StatusUnavailable,
+		StatusSpam,
+		StatusInvPhone,
 		"AbsolutelyUnknownStatus",
 	}
 	for _, s := range statuses {
