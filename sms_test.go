@@ -79,3 +79,11 @@ Array
 	require.Equal(t, "2016-10-16 15:00:00", r.SentAt)
 	require.Equal(t, "Array\n(\n [to] => 79998887766\n [text] => Земля, прощай!\n [from] => Komandor\n [sendTime] => 2016-10-16 15:00:00\n)\n", r.DebugInfo)
 }
+
+func TestParseSendSMSResponse_Error(t *testing.T) {
+	req := bytes.NewBufferString(`-1
+Invalid login/password`)
+	s := Sender{}
+	_, err := s.parseSendSMSResponse(req)
+	require.NotNil(t, err)
+}
