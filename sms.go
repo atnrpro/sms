@@ -116,7 +116,6 @@ func (s Sender) sendSMS(to, text, from, sendTime string) (SendResult, error) {
 
 func (s Sender) parseSendSMSResponse(resp io.Reader) (SendResult, error) {
 	scanner := bufio.NewScanner(resp)
-	// TODO: What if a scanner hits EOF?
 	scanner.Scan()
 	code := scanner.Text()
 	if code != "1" {
