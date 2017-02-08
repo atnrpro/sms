@@ -19,6 +19,7 @@ func TestDeliveryStatus_IsInProgress(t *testing.T) {
 	statuses := []DeliveryStatus{
 		StatusQueued,
 		StatusSent,
+		StatusModerating,
 	}
 	for _, s := range statuses {
 		t.Run("check status "+string(s), func(t *testing.T) {
@@ -60,11 +61,11 @@ func TestNewSender(t *testing.T) {
 
 func TestParseStatusResponse_Success(t *testing.T) {
 	// Arrange.
-	req := bytes.NewBufferString("1\n3")
+	resp := bytes.NewBufferString("1\n3")
 	s := Sender{}
 
 	// Act.
-	ds, err := s.parseStatusResponse(req)
+	ds, err := s.parseStatusResponse(resp)
 
 	// Assert.
 	require.Nil(t, err)
@@ -73,11 +74,11 @@ func TestParseStatusResponse_Success(t *testing.T) {
 
 func TestParseStatusResponse_BadCode(t *testing.T) {
 	// Arrange.
-	req := bytes.NewBufferString("Unexpected response")
+	resp := bytes.NewBufferString("Unexpected response")
 	s := Sender{}
 
 	// Act.
-	_, err := s.parseStatusResponse(req)
+	_, err := s.parseStatusResponse(resp)
 
 	// Assert.
 	require.NotNil(t, err)
@@ -177,27 +178,15 @@ func TestRequest_Success(t *testing.T) {
 
 func TestSender_sendSMS(t *testing.T) {
 	// Arrange.
-	c := &fakeClient{
-		RespToWrite: `1
-123
-1
-2016-10-16 15:00:00`,
-	}
+	c := &fakeClient{}
 	s := Sender{
 		Client: c,
 	}
 
 	// Act.
-	r, err := s.sendSMS("+79008007060", "Hello world", "inform", "2016-10-16 15:00:00")
+	_, _ = s.sendSMS("+79008007060", "Hello world", "inform", "2016-10-16 15:00:00")
 
 	// Assert.
-	require.Nil(t, err)
-
-	require.Equal(t, "123", r.SMSID)
-	require.Equal(t, 1, r.SMSCnt)
-	// TODO: time.Time.
-	require.Equal(t, "2016-10-16 15:00:00", r.SentAt)
-
 	require.Equal(t, "/api/simple/send", c.req.URL.Path)
 	require.Equal(t, "+79008007060", c.req.URL.Query().Get("to"))
 	require.Equal(t, "Hello world", c.req.URL.Query().Get("text"))
@@ -207,21 +196,15 @@ func TestSender_sendSMS(t *testing.T) {
 
 func TestSender_QueryStatus(t *testing.T) {
 	// Arrange.
-	c := &fakeClient{
-		RespToWrite: "1\n3",
-	}
+	c := &fakeClient{}
 	s := Sender{
 		Client: c,
 	}
 
 	// Act.
-	r, err := s.QueryStatus("848918")
+	_, _ = s.QueryStatus("848918")
 
 	// Assert.
-	require.Nil(t, err)
-
-	require.Equal(t, DeliveryStatus("3"), r)
-
 	require.Equal(t, "/api/simple/status", c.req.URL.Path)
 	require.Equal(t, "848918", c.req.URL.Query().Get("smsId"))
 }
