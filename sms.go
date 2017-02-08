@@ -9,9 +9,6 @@ import (
 )
 
 const (
-	uri         = "https://sms-rassilka.com/api/simple"
-	defaultFrom = "inform"
-
 	// In progress delivery statuses.
 	StatusQueued     = "0"
 	StatusSent       = "1"
@@ -62,7 +59,7 @@ type SendResult struct {
 
 // SendSMS sends an SMS right away with the default Sender.
 func (s Sender) SendSMS(to, text string) (SendResult, error) {
-	return s.sendSMS(to, text, defaultFrom, "")
+	return s.sendSMS(to, text, "inform", "")
 }
 
 // SendSMSFrom sends an SMS right away from the specified Sender.
@@ -72,7 +69,7 @@ func (s Sender) SendSMSFrom(to, text, from string) (SendResult, error) {
 
 // SendSMSAt sends an SMS from the default Sender at the specified time.
 func (s Sender) SendSMSAt(to, text, sendTime string) (SendResult, error) {
-	return s.sendSMS(to, text, defaultFrom, sendTime)
+	return s.sendSMS(to, text, "inform", sendTime)
 }
 
 // SendSMSFromAt sends an SMS from the specified Sender at the specified time.
@@ -85,7 +82,7 @@ func (s Sender) QueryStatus(SMSID string) (DeliveryStatus, error) {
 	args := map[string]string{
 		"smsId": SMSID,
 	}
-	resp, err := s.request(uri+"/status", args)
+	resp, err := s.request("/status", args)
 	if err != nil {
 		return "", fmt.Errorf("failed to request status: %v", err.Error())
 	}
@@ -116,7 +113,7 @@ func (s Sender) sendSMS(to, text, from, sendTime string) (SendResult, error) {
 	if sendTime != "" {
 		args["sendTime"] = sendTime
 	}
-	resp, err := s.request(uri+"/send", args)
+	resp, err := s.request("/send", args)
 	if err != nil {
 		return SendResult{}, fmt.Errorf("failed to request the service: %v", err)
 	}
@@ -162,9 +159,9 @@ func (s Sender) parseSendSMSResponse(resp io.Reader) (SendResult, error) {
 	return sr, nil
 }
 
-func (s Sender) request(uri string, args map[string]string) (io.ReadCloser, error) {
+func (s Sender) request(path string, args map[string]string) (io.ReadCloser, error) {
 	// The error is caught during tests.
-	req, _ := http.NewRequest(http.MethodGet, uri, nil)
+	req, _ := http.NewRequest(http.MethodGet, "https://sms-rassilka.com/api/simple" + path, nil)
 	q := req.URL.Query()
 	q.Set("login", s.Login)
 	q.Set("password", s.PasswordMD5)
