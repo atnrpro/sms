@@ -85,7 +85,6 @@ func (s Sender) QueryStatus(SMSID string) (DeliveryStatus, error) {
 
 func (s Sender) parseStatusResponse(resp io.Reader) (DeliveryStatus, error) {
 	scanner := bufio.NewScanner(resp)
-	// TODO: What if a scanner hits EOF?
 	scanner.Scan()
 	code := scanner.Text()
 	scanner.Scan()

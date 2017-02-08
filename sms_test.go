@@ -3,6 +3,7 @@ package sms
 import (
 	"testing"
 	"github.com/stretchr/testify/require"
+	"bytes"
 )
 
 func TestDeliveryStatus_IsDelivered(t *testing.T) {
@@ -42,9 +43,22 @@ func TestDeliveryStatus_IsUndelivered(t *testing.T) {
 	}
 }
 
-func TestParseStatusResponse(t *testing.T) {
-
+func TestParseStatusResponse_Success(t *testing.T) {
+	req := bytes.NewBufferString("1\n3")
+	s := Sender{}
+	ds, err := s.parseStatusResponse(req)
+	require.Equal(t, DeliveryStatus(StatusDelivered), ds)
+	require.Nil(t, err)
 }
+
+func TestParseStatusResponse_BadCode(t *testing.T) {
+	req := bytes.NewBufferString("Unexpected response")
+	s := Sender{}
+	_, err := s.parseStatusResponse(req)
+	require.NotNil(t, err)
+}
+
+
 
 /*
 TODO: Write tests.
