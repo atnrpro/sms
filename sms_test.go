@@ -3,9 +3,9 @@ package sms
 import (
 	"bytes"
 	"github.com/stretchr/testify/require"
+	"io/ioutil"
 	"net/http"
 	"testing"
-	"io/ioutil"
 )
 
 func TestDeliveryStatus_IsDelivered(t *testing.T) {
@@ -138,18 +138,21 @@ func TestParseSendSMSResponse_MalformedRequest(t *testing.T) {
 	require.NotNil(t, err)
 }
 
-type fakeClient struct{
+type fakeClient struct {
+	RespToWrite string
+
 	req *http.Request
 }
 
 func (c *fakeClient) Do(req *http.Request) (*http.Response, error) {
 	c.req = req
+
 	return &http.Response{
-		Body: ioutil.NopCloser(bytes.NewBufferString("sample response")),
+		Body: ioutil.NopCloser(bytes.NewBufferString(c.RespToWrite)),
 	}, nil
 }
 
-func TestRequest(t *testing.T) {
+func TestRequest_Success(t *testing.T) {
 	// Arrange.
 	c := &fakeClient{}
 	s := Sender{
@@ -160,7 +163,7 @@ func TestRequest(t *testing.T) {
 	}
 
 	// Act.
-	_, _ = s.request("/send", map[string]string{"user-arg": "user-val"})
+	s.request("/send", map[string]string{"user-arg": "user-val"})
 
 	// Assert.
 	require.Equal(t, "https", c.req.URL.Scheme)
@@ -170,4 +173,36 @@ func TestRequest(t *testing.T) {
 	require.Equal(t, "fd494182a7ee16ae07f641c7c03663d8", c.req.URL.Query().Get("password"))
 	require.Equal(t, "dev", c.req.URL.Query().Get("mode"))
 	require.Equal(t, "user-val", c.req.URL.Query().Get("user-arg"))
+}
+
+func TestSender_SendSMS(t *testing.T) {
+	// Arrange.
+	c := &fakeClient{
+		RespToWrite: `1
+123
+1
+2016-10-16 15:00:00`,
+	}
+	s := Sender{
+		Login:       "+79998887766",
+		PasswordMD5: "fd494182a7ee16ae07f641c7c03663d8",
+		Client:      c,
+	}
+
+	// Act.
+	r, err := s.sendSMS("+79008007060", "Hello world", "inform", "2016-10-16 15:00:00")
+
+	// Assert.
+	require.Nil(t, err)
+
+	require.Equal(t, "123", r.SMSID)
+	require.Equal(t, 1, r.SMSCnt)
+	// TODO: time.Time.
+	require.Equal(t, "2016-10-16 15:00:00", r.SentAt)
+
+	require.Equal(t, "/api/simple/send", c.req.URL.Path)
+	require.Equal(t, "+79008007060", c.req.URL.Query().Get("to"))
+	require.Equal(t, "Hello world", c.req.URL.Query().Get("text"))
+	require.Equal(t, "inform", c.req.URL.Query().Get("from"))
+	require.Equal(t, "2016-10-16 15:00:00", c.req.URL.Query().Get("sendTime"))
 }
