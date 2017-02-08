@@ -12,17 +12,27 @@ const (
 	uri         = "https://sms-rassilka.com/api/simple"
 	defaultFrom = "inform"
 
+	// In progress delivery statuses.
+	StatusQueued     = "0"
+	StatusSent       = "1"
+	StatusModerating = "10"
+
 	// Successful delivery statuses.
-	StatusQueued    = "0"
-	StatusSent      = "1"
 	StatusDelivered = "3"
 
 	// Unsuccessful delivery statuses.
-	StatusUndeliveredUnavailable = "4"
-	StatusUndeliveredSpam        = "15"
-	StatusUndeliveredInvPhone    = "16"
+	StatusUnavailable    = "4"
+	StatusRejected       = "11"
+	StatusSpam           = "15"
+	StatusInvPhone       = "16"
+	StatusStopListGlobal = "20"
+	StatusStopListLocal  = "21"
+	StatusExpired        = "25"
 
-	// TODO: Other delivery statuses.
+	// Outdated statuses for backward compatibility.
+	StatusOld2 = "2"
+	StatusOld5 = "5"
+	StatusOld6 = "6"
 )
 
 // Sender is a library facade for sending SMS and retrieving delivery statuses.
@@ -177,7 +187,7 @@ type DeliveryStatus string
 
 // IsInProgress tells if a message is still being processed.
 func (d DeliveryStatus) IsInProgress() bool {
-	return d == StatusQueued || d == StatusSent
+	return d == StatusQueued || d == StatusSent || d == StatusModerating
 }
 
 // IsDelivered tells if a message has in fact been delivered.
