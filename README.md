@@ -1,5 +1,6 @@
 # sms-rassilka.com client library
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/tiabc/sms)](https://goreportcard.com/report/github.com/tiabc/sms)
 [![Build Status](https://travis-ci.org/tiabc/sms.svg?branch=master)](https://travis-ci.org/tiabc/sms)
 [![Coverage Status](https://coveralls.io/repos/github/tiabc/sms/badge.svg)](https://coveralls.io/github/tiabc/sms)
 
