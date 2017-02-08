@@ -141,7 +141,7 @@ func (s Sender) parseSendSMSResponse(resp io.Reader) (SendResult, error) {
 	code := scanner.Text()
 	if code != "1" {
 		scanner.Scan()
-		return SendResult{}, fmt.Errorf("got error response: %s %s", code, scanner.Text())
+		return SendResult{}, fmt.Errorf("error response: %s %s", code, scanner.Text())
 	}
 
 	sr := SendResult{}
