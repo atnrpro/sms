@@ -116,7 +116,6 @@ func (s Sender) sendSMS(to, text, from, sendTime string) (SendResult, error) {
 }
 
 func (s Sender) parseSendSMSResponse(resp io.Reader) (SendResult, error) {
-	result := SendResult{}
 	scanner := bufio.NewScanner(resp)
 	// TODO: What if a scanner hits EOF?
 	scanner.Scan()
@@ -126,6 +125,7 @@ func (s Sender) parseSendSMSResponse(resp io.Reader) (SendResult, error) {
 		return SendResult{}, fmt.Errorf("got error response: %s %s", code, scanner.Text())
 	}
 
+	result := SendResult{}
 	for line := 0; scanner.Scan(); line++ {
 		switch line {
 		case 0:

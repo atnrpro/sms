@@ -42,6 +42,10 @@ func TestDeliveryStatus_IsUndelivered(t *testing.T) {
 	}
 }
 
+func TestParseStatusResponse(t *testing.T) {
+
+}
+
 /*
 TODO: Write tests.
 
