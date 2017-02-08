@@ -75,15 +75,15 @@ func (s *Sender) QueryStatus(SMSID string) (DeliveryStatus, error) {
 	args := map[string]string{
 		"smsId": SMSID,
 	}
-	respReader, err := s.request(uri+"/status", args)
+	resp, err := s.request(uri+"/status", args)
 	if err != nil {
 		return "", fmt.Errorf("failed to request status: %v", err.Error())
 	}
-	return s.parseStatusResponse(respReader)
+	defer resp.Close()
+	return s.parseStatusResponse(resp)
 }
 
-func (s *Sender) parseStatusResponse(resp io.ReadCloser) (DeliveryStatus, error) {
-	defer resp.Close()
+func (s *Sender) parseStatusResponse(resp io.Reader) (DeliveryStatus, error) {
 	scanner := bufio.NewScanner(resp)
 	// TODO: What if a scanner hits EOF?
 	scanner.Scan()
@@ -107,15 +107,15 @@ func (s *Sender) sendSMS(to, text, from, sendTime string) (SendResult, error) {
 	if sendTime != "" {
 		args["sendTime"] = sendTime
 	}
-	respReader, err := s.request(uri+"/send", args)
+	resp, err := s.request(uri+"/send", args)
 	if err != nil {
 		return SendResult{}, fmt.Errorf("failed to request the service: %v", err)
 	}
-	return s.parseSendSMSResponse(respReader)
+	defer resp.Close()
+	return s.parseSendSMSResponse(resp)
 }
 
-func (s *Sender) parseSendSMSResponse(resp io.ReadCloser) (SendResult, error) {
-	defer resp.Close()
+func (s *Sender) parseSendSMSResponse(resp io.Reader) (SendResult, error) {
 	result := SendResult{}
 	scanner := bufio.NewScanner(resp)
 	// TODO: What if a scanner hits EOF?
