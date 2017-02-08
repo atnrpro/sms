@@ -46,7 +46,21 @@ type Sender struct {
 	SandboxMode bool
 
 	// Client allows to make requests with your own HTTP client.
-	Client http.Client
+	Client Doer
+}
+
+// NewSender is a constructor.
+func NewSender(login, passwordMD5 string) Sender {
+	return Sender{
+		Login:       login,
+		PasswordMD5: passwordMD5,
+		Client:      http.DefaultClient,
+	}
+}
+
+// Doer facilitates testing the package.
+type Doer interface {
+	Do(*http.Request) (*http.Response, error)
 }
 
 // SendResult represents a result of sending an SMS.
@@ -161,7 +175,7 @@ func (s Sender) parseSendSMSResponse(resp io.Reader) (SendResult, error) {
 
 func (s Sender) request(path string, args map[string]string) (io.ReadCloser, error) {
 	// The error is caught during tests.
-	req, _ := http.NewRequest(http.MethodGet, "https://sms-rassilka.com/api/simple" + path, nil)
+	req, _ := http.NewRequest(http.MethodGet, "https://sms-rassilka.com/api/simple"+path, nil)
 	q := req.URL.Query()
 	q.Set("login", s.Login)
 	q.Set("password", s.PasswordMD5)

@@ -4,7 +4,18 @@ import (
 	"testing"
 	"github.com/stretchr/testify/require"
 	"bytes"
+	"net/http"
 )
+
+func TestNewSender(t *testing.T) {
+	s := NewSender("login", "passwordMD5")
+	require.Equal(t, Sender{
+		Login:       "login",
+		PasswordMD5: "passwordMD5",
+		SandboxMode: false,
+		Client:      http.DefaultClient,
+	}, s)
+}
 
 func TestDeliveryStatus_IsDelivered(t *testing.T) {
 	s := DeliveryStatus(StatusDelivered)
