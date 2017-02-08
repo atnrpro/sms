@@ -87,3 +87,13 @@ Invalid login/password`)
 	_, err := s.parseSendSMSResponse(req)
 	require.NotNil(t, err)
 }
+
+func TestParseSendSMSResponse_MalformedRequest(t *testing.T) {
+	req := bytes.NewBufferString(`1
+123
+1
+`)
+	s := Sender{}
+	_, err := s.parseSendSMSResponse(req)
+	require.NotNil(t, err)
+}

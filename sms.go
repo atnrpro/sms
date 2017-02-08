@@ -123,27 +123,33 @@ func (s Sender) parseSendSMSResponse(resp io.Reader) (SendResult, error) {
 		return SendResult{}, fmt.Errorf("got error response: %s %s", code, scanner.Text())
 	}
 
-	result := SendResult{}
+	sr := SendResult{}
 	for line := 0; scanner.Scan(); line++ {
 		switch line {
 		case 0:
-			result.SMSID = scanner.Text()
+			sr.SMSID = scanner.Text()
 		case 1:
 			c, err := strconv.Atoi(scanner.Text())
 			if err != nil {
 				return SendResult{}, fmt.Errorf("bad SMS count: %v", err)
 			}
-			result.SMSCnt = c
+			sr.SMSCnt = c
 		case 2:
-			result.SentAt = scanner.Text()
+			sr.SentAt = scanner.Text()
 		default:
-			result.DebugInfo += scanner.Text() + "\n"
+			sr.DebugInfo += scanner.Text() + "\n"
 		}
+	}
+	if sr.SMSID == "" {
+		return SendResult{}, fmt.Errorf("empty SMSID in the response")
+	}
+	if sr.SentAt == "" {
+		return SendResult{}, fmt.Errorf("empty SentAt in the response")
 	}
 	if err := scanner.Err(); err != nil {
 		return SendResult{}, fmt.Errorf("bad response: %v", err.Error())
 	}
-	return result, nil
+	return sr, nil
 }
 
 func (s Sender) request(uri string, args map[string]string) (io.ReadCloser, error) {
