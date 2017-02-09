@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"net/url"
 )
 
 const (
@@ -76,10 +77,9 @@ func (s Sender) SendSMSFromAt(to, text, from, sendTime string) (SendResult, erro
 
 // QueryStatus requests delivery status of an SMS.
 func (s Sender) QueryStatus(SMSID string) (DeliveryStatus, error) {
-	args := map[string]string{
-		"smsId": SMSID,
-	}
-	resp, err := s.request("/status", args)
+	vals := url.Values{}
+	vals.Set("smsId", SMSID)
+	resp, err := s.request("/status", vals)
 	if err != nil {
 		return "", fmt.Errorf("failed to request status: %v", err.Error())
 	}
@@ -100,17 +100,16 @@ func (s Sender) parseStatusResponse(resp io.Reader) (DeliveryStatus, error) {
 }
 
 func (s Sender) sendSMS(to, text, from, sendTime string) (SendResult, error) {
-	args := map[string]string{
-		"to":   to,
-		"text": text,
-	}
+	vals := url.Values{}
+	vals.Set("to", to)
+	vals.Set("text", text)
 	if from != "" {
-		args["from"] = from
+		vals.Set("from", from)
 	}
 	if sendTime != "" {
-		args["sendTime"] = sendTime
+		vals.Set("sendTime", sendTime)
 	}
-	resp, err := s.request("/send", args)
+	resp, err := s.request("/send", vals)
 	if err != nil {
 		return SendResult{}, fmt.Errorf("failed to request the service: %v", err)
 	}
@@ -156,19 +155,15 @@ func (s Sender) parseSendSMSResponse(resp io.Reader) (SendResult, error) {
 	return sr, nil
 }
 
-func (s Sender) request(path string, args map[string]string) (io.ReadCloser, error) {
+func (s Sender) request(path string, args url.Values) (io.ReadCloser, error) {
 	// The error is caught during tests.
 	req, _ := http.NewRequest(http.MethodGet, "https://sms-rassilka.com/api/simple"+path, nil)
-	q := req.URL.Query()
-	q.Set("login", s.Login)
-	q.Set("password", s.PasswordMD5)
+	args.Set("login", s.Login)
+	args.Set("password", s.PasswordMD5)
 	if s.SandboxMode {
-		q.Set("mode", "dev")
+		args.Set("mode", "dev")
 	}
-	for k, v := range args {
-		q.Set(k, v)
-	}
-	req.URL.RawQuery = q.Encode()
+	req.URL.RawQuery = args.Encode()
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err

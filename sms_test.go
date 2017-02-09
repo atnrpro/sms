@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"testing"
 	"gopkg.in/jarcoal/httpmock.v1"
+	"net/url"
 )
 
 func TestDeliveryStatus_IsDelivered(t *testing.T) {
@@ -155,7 +156,7 @@ func TestRequest_Success(t *testing.T) {
 	}
 
 	// Act.
-	s.request("/send", map[string]string{"user-arg": "user-val"})
+	s.request("/send", url.Values{"user-arg": []string{"user-val"}})
 
 	// Assert.
 	require.Equal(t, "https", c.req.URL.Scheme)
