@@ -44,23 +44,6 @@ type Sender struct {
 	// If false, real SMS are sent and real delivery statuses are retrieved.
 	// If true, no SMS are really sent and delivery statuses are fake.
 	SandboxMode bool
-
-	// Client allows to make requests with your own HTTP client.
-	Client Doer
-}
-
-// NewSender is a constructor.
-func NewSender(login, passwordMD5 string) Sender {
-	return Sender{
-		Login:       login,
-		PasswordMD5: passwordMD5,
-		Client:      http.DefaultClient,
-	}
-}
-
-// Doer facilitates testing the package.
-type Doer interface {
-	Do(*http.Request) (*http.Response, error)
 }
 
 // SendResult represents a result of sending an SMS.
@@ -186,7 +169,7 @@ func (s Sender) request(path string, args map[string]string) (io.ReadCloser, err
 		q.Set(k, v)
 	}
 	req.URL.RawQuery = q.Encode()
-	resp, err := s.Client.Do(req)
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
 	}

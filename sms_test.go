@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"testing"
+	"gopkg.in/jarcoal/httpmock.v1"
 )
 
 func TestDeliveryStatus_IsDelivered(t *testing.T) {
@@ -44,19 +45,6 @@ func TestDeliveryStatus_IsUndelivered(t *testing.T) {
 			require.False(t, s.IsDelivered())
 		})
 	}
-}
-
-func TestNewSender(t *testing.T) {
-	// Act.
-	s := NewSender("login", "passwordMD5")
-
-	// Assert.
-	require.Equal(t, Sender{
-		Login:       "login",
-		PasswordMD5: "passwordMD5",
-		SandboxMode: false,
-		Client:      http.DefaultClient,
-	}, s)
 }
 
 func TestParseStatusResponse_Success(t *testing.T) {
@@ -155,12 +143,15 @@ func (c *fakeClient) Do(req *http.Request) (*http.Response, error) {
 
 func TestRequest_Success(t *testing.T) {
 	// Arrange.
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
 	c := &fakeClient{}
+	httpmock.RegisterResponder(http.MethodGet, "https://sms-rassilka.com/api/simple/send", c.Do)
 	s := Sender{
 		Login:       "+79998887766",
 		PasswordMD5: "fd494182a7ee16ae07f641c7c03663d8",
 		SandboxMode: true,
-		Client:      c,
 	}
 
 	// Act.
@@ -178,10 +169,12 @@ func TestRequest_Success(t *testing.T) {
 
 func TestSender_sendSMS(t *testing.T) {
 	// Arrange.
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
 	c := &fakeClient{}
-	s := Sender{
-		Client: c,
-	}
+	httpmock.RegisterResponder(http.MethodGet, "https://sms-rassilka.com/api/simple/send", c.Do)
+	s := Sender{}
 
 	// Act.
 	_, _ = s.sendSMS("+79008007060", "Hello world", "inform", "2016-10-16 15:00:00")
@@ -196,10 +189,12 @@ func TestSender_sendSMS(t *testing.T) {
 
 func TestSender_QueryStatus(t *testing.T) {
 	// Arrange.
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
 	c := &fakeClient{}
-	s := Sender{
-		Client: c,
-	}
+	httpmock.RegisterResponder(http.MethodGet, "https://sms-rassilka.com/api/simple/status", c.Do)
+	s := Sender{}
 
 	// Act.
 	_, _ = s.QueryStatus("848918")
@@ -211,10 +206,12 @@ func TestSender_QueryStatus(t *testing.T) {
 
 func TestSender_SendSMS(t *testing.T) {
 	// Arrange.
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
 	c := &fakeClient{}
-	s := Sender{
-		Client: c,
-	}
+	httpmock.RegisterResponder(http.MethodGet, "https://sms-rassilka.com/api/simple/send", c.Do)
+	s := Sender{}
 
 	// Act.
 	s.SendSMS("+79008007060", "Hello world")

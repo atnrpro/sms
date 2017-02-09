@@ -19,7 +19,10 @@ import (
 
 func main() {
 	// Create a sender with your login and MD5-hashed password.
-	s := sms.NewSender("+7 999 888-77-66", "fd494182a7ee16ae07f641c7c03663d8")
+	s := sms.Sender{
+	    Login:       "+7 999 888-77-66",
+	    PasswordMD5: "fd494182a7ee16ae07f641c7c03663d8",
+	}
 
 	// Use any of SendSMS methods to send an SMS.
 	res, err := s.SendSMS("+7 999 000-00-00", "Hello world!")
