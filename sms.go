@@ -9,18 +9,16 @@ import (
 	"strconv"
 )
 
-// In progress delivery statuses.
 const (
+	// In progress delivery statuses.
 	StatusQueued     = "0"
 	StatusSent       = "1"
 	StatusModerating = "10"
-)
 
-// Successful delivery status.
-const StatusDelivered = "3"
+	// Successful delivery status.
+	StatusDelivered = "3"
 
-// Unsuccessful delivery statuses.
-const (
+	// Unsuccessful delivery statuses.
 	StatusUnavailable    = "4"
 	StatusRejected       = "11"
 	StatusSpam           = "15"
@@ -28,10 +26,8 @@ const (
 	StatusStopListGlobal = "20"
 	StatusStopListLocal  = "21"
 	StatusExpired        = "25"
-)
 
-// Outdated statuses for backward compatibility.
-const (
+	// Outdated statuses for backward compatibility.
 	StatusOld2 = "2"
 	StatusOld5 = "5"
 	StatusOld6 = "6"
