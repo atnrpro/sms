@@ -5,20 +5,22 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strconv"
 	"net/url"
+	"strconv"
 )
 
+// In progress delivery statuses.
 const (
-	// In progress delivery statuses.
 	StatusQueued     = "0"
 	StatusSent       = "1"
 	StatusModerating = "10"
+)
 
-	// Successful delivery statuses.
-	StatusDelivered = "3"
+// Successful delivery status.
+const StatusDelivered = "3"
 
-	// Unsuccessful delivery statuses.
+// Unsuccessful delivery statuses.
+const (
 	StatusUnavailable    = "4"
 	StatusRejected       = "11"
 	StatusSpam           = "15"
@@ -26,11 +28,19 @@ const (
 	StatusStopListGlobal = "20"
 	StatusStopListLocal  = "21"
 	StatusExpired        = "25"
+)
 
-	// Outdated statuses for backward compatibility.
+// Outdated statuses for backward compatibility.
+const (
 	StatusOld2 = "2"
 	StatusOld5 = "5"
 	StatusOld6 = "6"
+)
+
+const (
+	uri         = "https://sms-rassilka.com/api/simple"
+	defaultFrom = "inform"
+	successResp = "1"
 )
 
 // Sender is a library facade for sending SMS and retrieving delivery statuses.
@@ -57,7 +67,7 @@ type SendResult struct {
 
 // SendSMS sends an SMS right away with the default Sender.
 func (s Sender) SendSMS(to, text string) (SendResult, error) {
-	return s.sendSMS(to, text, "inform", "")
+	return s.sendSMS(to, text, defaultFrom, "")
 }
 
 // SendSMSFrom sends an SMS right away from the specified Sender.
@@ -67,7 +77,7 @@ func (s Sender) SendSMSFrom(to, text, from string) (SendResult, error) {
 
 // SendSMSAt sends an SMS from the default Sender at the specified time.
 func (s Sender) SendSMSAt(to, text, sendTime string) (SendResult, error) {
-	return s.sendSMS(to, text, "inform", sendTime)
+	return s.sendSMS(to, text, defaultFrom, sendTime)
 }
 
 // SendSMSFromAt sends an SMS from the specified Sender at the specified time.
@@ -93,7 +103,7 @@ func (s Sender) parseStatusResponse(resp io.Reader) (DeliveryStatus, error) {
 	code := scanner.Text()
 	scanner.Scan()
 	t := scanner.Text()
-	if code != "1" {
+	if code != successResp {
 		return "", fmt.Errorf("error response: %s %s", code, t)
 	}
 	return DeliveryStatus(t), nil
@@ -121,7 +131,7 @@ func (s Sender) parseSendSMSResponse(resp io.Reader) (SendResult, error) {
 	scanner := bufio.NewScanner(resp)
 	scanner.Scan()
 	code := scanner.Text()
-	if code != "1" {
+	if code != successResp {
 		scanner.Scan()
 		return SendResult{}, fmt.Errorf("error response: %s %s", code, scanner.Text())
 	}
@@ -157,7 +167,7 @@ func (s Sender) parseSendSMSResponse(resp io.Reader) (SendResult, error) {
 
 func (s Sender) request(path string, args url.Values) (io.ReadCloser, error) {
 	// The error is caught during tests.
-	req, _ := http.NewRequest(http.MethodGet, "https://sms-rassilka.com/api/simple"+path, nil)
+	req, _ := http.NewRequest(http.MethodGet, uri+path, nil)
 	args.Set("login", s.Login)
 	args.Set("password", s.PasswordMD5)
 	if s.SandboxMode {
