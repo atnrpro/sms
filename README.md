@@ -4,10 +4,9 @@
 [![Build Status](https://travis-ci.org/tiabc/sms.svg?branch=master)](https://travis-ci.org/tiabc/sms)
 [![Coverage Status](https://coveralls.io/repos/github/tiabc/sms/badge.svg)](https://coveralls.io/github/tiabc/sms)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![GoDoc](https://godoc.org/github.com/tiabc/sms?status.svg)](https://godoc.org/github.com/tiabc/sms)
 
 The API documentation can be found at https://sms-rassilka.com/downloads/api/infocity-http-get.pdf.
-
-Full package documentation can be found at https://godoc.org/github.com/tiabc/sms.
 
 ## Example
 
