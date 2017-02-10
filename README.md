@@ -7,6 +7,8 @@
 
 The API documentation can be found at https://sms-rassilka.com/downloads/api/infocity-http-get.pdf.
 
+Full package documentation can be found at https://godoc.org/github.com/tiabc/sms.
+
 ## Example
 
 ```go
