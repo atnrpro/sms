@@ -3,11 +3,11 @@ package sms
 import (
 	"bytes"
 	"github.com/stretchr/testify/require"
+	"gopkg.in/jarcoal/httpmock.v1"
 	"io/ioutil"
 	"net/http"
-	"testing"
-	"gopkg.in/jarcoal/httpmock.v1"
 	"net/url"
+	"testing"
 )
 
 func TestDeliveryStatus_IsDelivered(t *testing.T) {
@@ -75,9 +75,10 @@ func TestParseStatusResponse_BadCode(t *testing.T) {
 
 func TestParseSendSMSResponse_Success(t *testing.T) {
 	// Arrange.
-	req := bytes.NewBufferString(`1
-123
+	req := bytes.NewBufferString(`
 1
+123
+1.75
 2016-10-16 15:00:00
 Array
 (
@@ -94,7 +95,7 @@ Array
 	// Assert.
 	require.Nil(t, err)
 	require.Equal(t, "123", r.SMSID)
-	require.Equal(t, 1, r.SMSCnt)
+	require.Equal(t, "1.75", r.SMSCost)
 	// TODO: time.Time.
 	require.Equal(t, "2016-10-16 15:00:00", r.SentAt)
 	require.Equal(t, "Array\n(\n [to] => 79998887766\n [text] => Земля, прощай!\n [from] => Komandor\n [sendTime] => 2016-10-16 15:00:00\n)\n", r.DebugInfo)
@@ -102,7 +103,8 @@ Array
 
 func TestParseSendSMSResponse_Error(t *testing.T) {
 	// Arrange.
-	req := bytes.NewBufferString(`-1
+	req := bytes.NewBufferString(`
+-1
 Invalid login/password`)
 	s := Sender{}
 
@@ -117,7 +119,7 @@ func TestParseSendSMSResponse_MalformedRequest(t *testing.T) {
 	// Arrange.
 	req := bytes.NewBufferString(`1
 123
-1
+1.75
 `)
 	s := Sender{}
 

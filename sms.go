@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"strconv"
 )
 
 const (
@@ -56,7 +55,7 @@ type Sender struct {
 // SendResult represents a result of sending an SMS.
 type SendResult struct {
 	SMSID     string
-	SMSCnt    int
+	SMSCost   string
 	SentAt    string
 	DebugInfo string
 }
@@ -126,6 +125,7 @@ func (s Sender) sendSMS(to, text, from, sendTime string) (SendResult, error) {
 func (s Sender) parseSendSMSResponse(resp io.Reader) (SendResult, error) {
 	scanner := bufio.NewScanner(resp)
 	scanner.Scan()
+	scanner.Scan()
 	code := scanner.Text()
 	if code != successResp {
 		scanner.Scan()
@@ -138,11 +138,7 @@ func (s Sender) parseSendSMSResponse(resp io.Reader) (SendResult, error) {
 		case 0:
 			sr.SMSID = scanner.Text()
 		case 1:
-			c, err := strconv.Atoi(scanner.Text())
-			if err != nil {
-				return SendResult{}, fmt.Errorf("bad SMS count: %v", err)
-			}
-			sr.SMSCnt = c
+			sr.SMSCost = scanner.Text()
 		case 2:
 			sr.SentAt = scanner.Text()
 		default:
